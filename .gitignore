@@ -1,9 +1,3 @@
 .env
-.env.integration
-.stryker-tmp
-cdk.out
-coverage
 dist
 node_modules
-reports
-volume
