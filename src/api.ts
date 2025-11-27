@@ -34,12 +34,13 @@ export async function fetchProjects(): Promise<Project[]> {
         let metadata: ProjectMetadata | null = null
         try {
           const metaUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${projectsPath}/${dir.name}/metadata.json`
-          const metaRes = await fetch(metaUrl)
+          const metaRes = await fetch(metaUrl, { cache: 'no-store' })
           if (metaRes.ok) {
-            metadata = await metaRes.json()
+            const text = await metaRes.text()
+            metadata = JSON.parse(text)
           }
-        } catch {
-          // Metadata is optional
+        } catch (e) {
+          console.error('Metadata fetch error:', e)
         }
 
         return {
