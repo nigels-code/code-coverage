@@ -60,7 +60,18 @@ export default function App() {
                   index !== projects.length - 1 ? 'border-b border-gray-100' : ''
                 }`}
               >
-                <span className="font-medium text-gray-900">{project.name}</span>
+                {project.metadata?.sourceRepo ? (
+                  <a
+                    href={`https://github.com/${project.metadata.sourceRepo}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {project.name}
+                  </a>
+                ) : (
+                  <span className="font-medium text-gray-900">{project.name}</span>
+                )}
                 <div className="flex items-center gap-6">
                   <span className="text-gray-700">{project.coverage.percentage.toFixed(1)}%</span>
                   <span className="text-gray-500 text-sm">
