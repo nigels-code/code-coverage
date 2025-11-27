@@ -1,6 +1,6 @@
 export const CONFIG = {
-  owner: 'YOUR_USERNAME',
-  repo: 'coverage-aggregator',
+  owner: 'nigels-code',
+  repo: 'code-coverage',
   branch: 'main',
   projectsPath: 'projects',
 } as const
