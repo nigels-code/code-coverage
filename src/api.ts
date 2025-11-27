@@ -1,30 +1,20 @@
-import { CONFIG } from './config'
 import { parseLcov } from './lcov'
 import type { Project, ProjectMetadata } from './types'
 
-interface GitHubContent {
-  name: string
-  type: 'file' | 'dir'
-}
-
 export async function fetchProjects(): Promise<Project[]> {
-  const { owner, repo, branch, projectsPath } = CONFIG
+  // Fetch the project index file
+  const indexRes = await fetch(`${import.meta.env.BASE_URL}projects/index.json`, { cache: 'no-store' })
 
-  const contentsUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${projectsPath}?ref=${branch}`
-  const contentsRes = await fetch(contentsUrl)
-
-  if (!contentsRes.ok) {
-    throw new Error(`Failed to fetch projects: ${contentsRes.status}`)
+  if (!indexRes.ok) {
+    throw new Error(`Failed to fetch project index: ${indexRes.status}`)
   }
 
-  const contents: GitHubContent[] = await contentsRes.json()
-  const projectDirs = contents.filter((item) => item.type === 'dir')
+  const projectNames: string[] = await indexRes.json()
 
   const projects = await Promise.all(
-    projectDirs.map(async (dir): Promise<Project | null> => {
+    projectNames.map(async (name): Promise<Project | null> => {
       try {
-        const lcovUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${projectsPath}/${dir.name}/lcov.info`
-        const lcovRes = await fetch(lcovUrl)
+        const lcovRes = await fetch(`${import.meta.env.BASE_URL}projects/${name}/lcov.info`, { cache: 'no-store' })
 
         if (!lcovRes.ok) return null
 
@@ -33,23 +23,21 @@ export async function fetchProjects(): Promise<Project[]> {
 
         let metadata: ProjectMetadata | null = null
         try {
-          const metaUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${projectsPath}/${dir.name}/metadata.json`
-          const metaRes = await fetch(metaUrl, { cache: 'no-store' })
+          const metaRes = await fetch(`${import.meta.env.BASE_URL}projects/${name}/metadata.json`, { cache: 'no-store' })
           if (metaRes.ok) {
-            const text = await metaRes.text()
-            metadata = JSON.parse(text)
+            metadata = await metaRes.json()
           }
         } catch (e) {
           console.error('Metadata fetch error:', e)
         }
 
         return {
-          name: dir.name,
+          name,
           coverage,
           metadata,
         }
       } catch (e) {
-        console.error(`Error loading ${dir.name}:`, e)
+        console.error(`Error loading ${name}:`, e)
         return null
       }
     })
