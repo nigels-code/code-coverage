@@ -3,10 +3,13 @@ import { fetchProjects } from './api'
 import type { Project } from './types'
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   })
 }
 
