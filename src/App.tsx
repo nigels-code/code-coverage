@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { fetchProjects } from './api'
 import type { Project } from './types'
+
+type SortOption = 'name' | 'date'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString('en-US', {
@@ -17,6 +19,18 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<SortOption>('name')
+
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.name.localeCompare(b.name)
+      }
+      const dateA = a.metadata?.lastUpdated ? new Date(a.metadata.lastUpdated).getTime() : 0
+      const dateB = b.metadata?.lastUpdated ? new Date(b.metadata.lastUpdated).getTime() : 0
+      return dateB - dateA // Most recent first
+    })
+  }, [projects, sortBy])
 
   useEffect(() => {
     fetchProjects()
@@ -47,17 +61,30 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Corporate Services Test Coverage</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Corporate Services Test Coverage</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              <option value="name">Name</option>
+              <option value="date">Last Updated</option>
+            </select>
+          </div>
+        </div>
 
-        {projects.length === 0 ? (
+        {sortedProjects.length === 0 ? (
           <p className="text-gray-500">No projects found.</p>
         ) : (
           <div className="bg-white rounded-lg shadow">
-            {projects.map((project, index) => (
+            {sortedProjects.map((project, index) => (
               <div
                 key={project.name}
                 className={`flex items-center justify-between px-4 py-3 ${
-                  index !== projects.length - 1 ? 'border-b border-gray-100' : ''
+                  index !== sortedProjects.length - 1 ? 'border-b border-gray-100' : ''
                 }`}
               >
                 {project.metadata?.sourceRepo ? (
