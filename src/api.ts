@@ -1,9 +1,11 @@
 import { parseLcov } from './lcov'
 import type { Project, ProjectMetadata } from './types'
 
+const S3_BUCKET_URL = 'https://coverage-demo-np1086.s3.amazonaws.com'
+
 export async function fetchProjects(): Promise<Project[]> {
-  // Fetch the project index file
-  const indexRes = await fetch(`${import.meta.env.BASE_URL}projects/index.json`, { cache: 'no-store' })
+  // Fetch the project index file from S3
+  const indexRes = await fetch(`${S3_BUCKET_URL}/projects/index.json`, { cache: 'no-store' })
 
   if (!indexRes.ok) {
     throw new Error(`Failed to fetch project index: ${indexRes.status}`)
@@ -14,7 +16,7 @@ export async function fetchProjects(): Promise<Project[]> {
   const projects = await Promise.all(
     projectNames.map(async (name): Promise<Project | null> => {
       try {
-        const lcovRes = await fetch(`${import.meta.env.BASE_URL}projects/${name}/lcov.info`, { cache: 'no-store' })
+        const lcovRes = await fetch(`${S3_BUCKET_URL}/projects/${name}/lcov.info`, { cache: 'no-store' })
 
         if (!lcovRes.ok) return null
 
@@ -23,7 +25,7 @@ export async function fetchProjects(): Promise<Project[]> {
 
         let metadata: ProjectMetadata | null = null
         try {
-          const metaRes = await fetch(`${import.meta.env.BASE_URL}projects/${name}/metadata.json`, { cache: 'no-store' })
+          const metaRes = await fetch(`${S3_BUCKET_URL}/projects/${name}/metadata.json`, { cache: 'no-store' })
           if (metaRes.ok) {
             metadata = await metaRes.json()
           }
@@ -36,6 +38,7 @@ export async function fetchProjects(): Promise<Project[]> {
           coverage,
           metadata,
         }
+
       } catch (e) {
         console.error(`Error loading ${name}:`, e)
         return null
