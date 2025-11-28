@@ -1,7 +1,7 @@
 import { parseLcov } from './lcov'
 import type { Project, ProjectMetadata } from './types'
 
-const S3_BUCKET_URL = 'https://coverage-demo-np1086.s3.amazonaws.com'
+const S3_BUCKET_URL = 'https://coverage-demo-np1086.s3.eu-west-1.amazonaws.com'
 
 export async function fetchProjects(): Promise<Project[]> {
   // Fetch the project index file from S3
